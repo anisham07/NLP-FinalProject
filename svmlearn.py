@@ -6,7 +6,7 @@ import nltk,csv
 from nltk import sent_tokenize, word_tokenize, pos_tag
 from nltk.corpus import stopwords
 import enchant
-reader = csv.reader(open('eggs.csv', 'rU'), delimiter= ",",quotechar='|')
+reader = csv.reader(open('features.csv', 'rU'), delimiter= ",",quotechar='|')
 next(reader)
 reg = svm.SVR()
 X = []
@@ -42,7 +42,8 @@ reg.fit(X,y)
 # print (reg.coef_, reg.intercept_)
 stop_words = set(stopwords.words('english'))
 d = enchant.Dict("en_US")
-reader = csv.reader(open('training_set_rel3.tsv', 'rU', encoding="latin1"), delimiter= "\t",quotechar='|')
+openFile = open("ResultSVM.txt","w",encoding="latin1")
+reader = csv.reader(open('valid_set.tsv', 'rU', encoding="latin1"), delimiter= "\t",quotechar='|')
 next(reader)
 count = 0
 for line in reader:
@@ -109,6 +110,8 @@ for line in reader:
     output = reg.predict(X1)
     # count += 1
     # finalerror += (output - line[6])*(output - line[6])
-    print(output)
+    print(output[0])
+    openFile.write(line[0] + " " + str(output[0]) + "\n")
+
 # finalerror = finalerror/count
 # print(finalerror)
