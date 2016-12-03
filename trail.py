@@ -6,6 +6,7 @@ from nltk.corpus import stopwords
 from gensim.models import word2vec
 import numpy as np
 from sklearn import linear_model
+from sklearn import ensemble
 from sklearn import svm
 
 tokenizer = nltk.data.load("tokenizers/punkt/english.pickle")
@@ -20,7 +21,7 @@ def essays_to_sentences(essay, tokenizer, remove_stopWords = True):
     each nested list contains the words present in sentence.
     the entire list contains all the sentences in the essay.
     '''
-    essay1 = essay.decode("utf-8")
+    essay1 = essay
     # print " Processing essay %d" % count
     all_sentences = tokenizer.tokenize(essay1.strip())
     sentences = []
@@ -35,7 +36,8 @@ def sentences_to_words(raw_essay, remove_stopwords):
     :return: list of words
     '''
     # Remove html
-    essay_text = BeautifulSoup(raw_essay).get_text()
+    essay_text = raw_essay
+    # BeautifulSoup(raw_essay).get_text()
     # Remove punctuation ?
     essay = re.sub("[^a-zA-Z]", " ", essay_text)
     # get individual words
@@ -75,8 +77,8 @@ def expand_features(model, data, features):
     return df
 
 if __name__ == '__main__':
-    df = pd.DataFrame.from_csv("training_set_rel3.tsv", sep='\t', header=0)
-    print df.shape
+    df = pd.DataFrame.from_csv("training_set_rel3.tsv", sep='\t', header=0, encoding='latin1')
+    # print df.shape
     all_essays = df['essay']
     input_essays = []
     features  = 300
@@ -92,19 +94,22 @@ if __name__ == '__main__':
     X_tr = np.array(temp_train_data)
     Y_tr = np.array(df['domain1_score'])
     reg = linear_model.LinearRegression()
-    reg.fit(X_tr, Y_tr, 0.001)
-
+    reg.fit(X_tr, Y_tr)
+    reg2 = ensemble.RandomForestRegressor()
+    reg2.fit(X_tr, Y_tr)
     '''
     Validation Data
     '''
-    validation  = pd.DataFrame.from_csv("valid_set.tsv", sep='\t', header = 0)
+    validation  = pd.DataFrame.from_csv("valid_set.tsv", sep='\t', header = 0,encoding='latin1')
     df2 = expand_features(model, validation['essay'], features)
     test_data = pd.concat([validation['essay_set'], df2], axis = 1).fillna(0)
 
     X_te = np.array(test_data)
     Y_te = reg.predict(X_te)
-    print "test shape", Y_te.shape
+    Y2 = reg2.predict(X_te)
+    # print "test shape", Y_te.shape
     np.savetxt("output_linear_wordvec.csv", Y_te, delimiter=',')
+    np.savetxt("output_forest_wordvec.csv", Y2, delimiter=',')
 
     svm_trainer_rbf = svm.SVR(kernel='rbf', cache_size=1000, C=0.25)
     svm_trainer_rbf.fit(X_tr, Y_tr)
