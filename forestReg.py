@@ -7,7 +7,7 @@ from nltk.corpus import stopwords
 import enchant
 reader = csv.reader(open('features.csv', 'rU'), delimiter= ",",quotechar='|')
 next(reader)
-reg = ensemble.RandomForestRegressor()
+reg = ensemble.RandomForestRegressor(n_estimators=20)
 X = []
 Y = []
 y =[]
